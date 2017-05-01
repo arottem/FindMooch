@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 public static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)
 {
-    log.Info("C# HTTP trigger function processed a request.");
+    log.Info("FindMooch - Alex-Response function called");
 
     // Get request body
     string data = await req.Content.ReadAsStringAsync();
