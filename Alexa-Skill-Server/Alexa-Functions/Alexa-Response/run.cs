@@ -33,7 +33,7 @@ namespace AlexaFunctions
                     var events = await moochResponse.Content.ReadAsAsync<IEnumerable<MoochEvent>>();
                     foreach (MoochEvent moochEvent in events)
                     {
-                        outputSpeach += String.Format("Event titled. {0}.", moochEvent.Title);
+                        outputSpeach += String.Format("Event titled. {0}. ", moochEvent.Title);
                     }
                 }
                 else
