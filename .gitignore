@@ -3,3 +3,11 @@
 ################################################################################
 
 /.vs
+/Alexa-Skill-Server/.vs
+/Alexa-Skill-Server/.vs
+/Alexa-Skill-Server/.vs
+/Alexa-Skill-Server/Alexa-Functions/bin
+/Alexa-Skill-Server/Alexa-Functions/obj
+/Alexa-Skill-Server/Alexa-Functions/appsettings.json
+/Alexa-Skill-Server/packages
+/Alexa-Skill-Server/Alexa-Functions/Alexa-Functions.csproj.user
