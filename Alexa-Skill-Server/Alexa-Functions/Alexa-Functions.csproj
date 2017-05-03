@@ -108,7 +108,6 @@
     </Content>
     <Content Include="Alexa-Response\function.json" />
     <Compile Include="Alexa-Response\run.cs" />
-    <Content Include="appsettings.json" />
     <Content Include="host.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
