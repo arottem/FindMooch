@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -50,21 +51,18 @@ namespace AlexaFunctions
         {
             this.log.Info(String.Format("BeginOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent.Name));
 
-            var response = new SpeechletResponse();
-            response.ShouldEndSession = true;
-
             var task = GetEvents();
             task.Wait();
-            response.OutputSpeech = new SsmlOutputSpeech() { Ssml = task.Result };
 
-            this.log.Info(String.Format("EndOnIntent requestId={0}, sessionId={1}, intent={2}, result={3}", request.RequestId, session.SessionId, request.Intent, task.Result));
-            return response;
+            this.log.Info(String.Format("EndOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent));
+            return task.Result;
         }
 
 
-        private async Task<string> GetEvents()
+        private async Task<SpeechletResponse> GetEvents()
         {
-            string outputSpeach = "Here are events near you.";
+            string outputSpeech = "Here are events near you.";
+            string outputCard = String.Empty;
             int pageSize = 5; // Get up to 5 events per interaction
             string moochApiToken = ConfigurationManager.AppSettings["MoochApiToken"];
 
@@ -81,21 +79,58 @@ namespace AlexaFunctions
                     foreach (MoochEvent moochEvent in events)
                     {
                         var localTime = TimeZoneInfo.ConvertTime(moochEvent.EventStart, TimeZoneInfo.Utc, TimeZoneInfo.Local);
-                        outputSpeach += String.Format(
+                        outputSpeech += String.Format(
                             @"<p><emphasis level=""strong"">Event titled</emphasis> <break strength=""strong""/> {0} <break strength=""strong""/><emphasis level=""moderate""> Event occurs on </emphasis> {1} </p> ",
                             moochEvent.Title, localTime);
+                        string location = StringifyLocation(moochEvent.Location);
+                        outputCard += String.Format("Event: {0}\nDate: {1}\nLocation:{2}\n", moochEvent.Title, localTime, location);
                     }
                 }
                 else
                 {
-                    outputSpeach = @"<emphasis level=""strong"">Sorry.</emphasis> An error occurred with Find Mooch.";
+                    outputSpeech = @"<emphasis level=""strong"">Sorry.</emphasis> An error occurred with Find Mooch.";
                 }
             }
 
-            outputSpeach = String.Format("<speak>{0}</speak>", outputSpeach);
-            return outputSpeach;
+            outputSpeech = String.Format("<speak>{0}</speak>", outputSpeech);
+
+            var card = new SimpleCard();
+            card.Title = "Here are events near you";
+            card.Content = outputCard;
+            
+            var response = new SpeechletResponse();
+            response.ShouldEndSession = true;
+            response.OutputSpeech = new SsmlOutputSpeech() { Ssml = outputSpeech };
+            response.Card = card;
+            return response;
         }
 
+        private string StringifyLocation(MoochLocation location)
+        {
+            var sb = new StringBuilder();
+            if (!String.IsNullOrWhiteSpace(location.Name))
+            {
+                sb.AppendLine(location.Name);
+            }
+            if (!String.IsNullOrWhiteSpace(location.Address_1))
+            {
+                sb.Append(location.Address_1 + ",");
+            }
+            if (!String.IsNullOrWhiteSpace(location.Address_2))
+            {
+                sb.Append(location.Address_2 + ",");
+            }
+            if (!String.IsNullOrWhiteSpace(location.Address_3))
+            {
+                sb.Append(location.Address_3 + ",");
+            }
+            if (!String.IsNullOrWhiteSpace(location.City))
+            {
+                sb.Append(location.City);
+            }
+            sb.AppendLine();
+            return sb.ToString();
+        }
 
         public override void OnSessionEnded(SessionEndedRequest request, Session session)
         {
