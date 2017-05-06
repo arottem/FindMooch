@@ -43,6 +43,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AlexaSkillsKit, Version=1.5.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\AlexaSkillsKit.NET.1.5.1\lib\net45\AlexaSkillsKit.dll</HintPath>
+    </Reference>
+    <Reference Include="BouncyCastle.Crypto, Version=1.8.1.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
+      <HintPath>..\packages\BouncyCastle.1.8.1\lib\BouncyCastle.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
     </Reference>
@@ -109,6 +115,7 @@
     <Content Include="Alexa-Response\function.json" />
     <Compile Include="Alexa-Response\MoochEvent.cs" />
     <Compile Include="Alexa-Response\MoochLocation.cs" />
+    <Compile Include="Alexa-Response\MoochSpeechlet.cs" />
     <Compile Include="Alexa-Response\run.cs" />
     <Content Include="host.json" />
     <None Include="Web.Debug.config">
