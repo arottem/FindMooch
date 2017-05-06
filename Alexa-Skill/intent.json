@@ -1,11 +1,32 @@
 {
   "intents": [
     {
-      "intent": "FindMooch",
+      "name": "AMAZON.CancelIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.HelpIntent",
+      "samples": []
+    },
+    {
+      "name": "AMAZON.StopIntent",
+      "samples": []
+    },
+    {
+      "name": "FindMooch",
+      "samples": [
+        "find mooches",
+        "find mooches near {city}",
+        "find free events",
+        "find events",
+        "tell me about events",
+        "tell me about free events"
+      ],
       "slots": [
         {
-          "name": "City",
-          "type": "AMAZON.US_CITY"
+          "name": "city",
+          "type": "AMAZON.US_CITY",
+          "samples": []
         }
       ]
     }
