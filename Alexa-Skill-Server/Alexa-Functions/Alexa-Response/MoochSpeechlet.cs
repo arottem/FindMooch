@@ -40,17 +40,15 @@ namespace AlexaFunctions
 
             var response = new SpeechletResponse();
             response.ShouldEndSession = false;
-            response.OutputSpeech = new SsmlOutputSpeech() {  Ssml=@"Welcome to Find Mooch. Ask me <break strength=""medium""/> <emphasis level=""strong""> find free events </emphasis>"};
+            response.OutputSpeech = new SsmlOutputSpeech() {  Ssml=@"<speak>Welcome to Find Mooch. Ask me <break strength=""medium""/> <emphasis level=""strong""> find free events </emphasis></speak>"};
 
             return response;
         }
 
 
-
-
         public override SpeechletResponse OnIntent(IntentRequest request, Session session)
         {
-            this.log.Info(String.Format("BeginOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent));
+            this.log.Info(String.Format("BeginOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent.Name));
 
             var response = new SpeechletResponse();
             response.ShouldEndSession = true;
