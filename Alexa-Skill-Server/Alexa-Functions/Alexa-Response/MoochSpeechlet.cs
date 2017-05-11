@@ -15,13 +15,13 @@ namespace AlexaFunctions
 {
     public class MoochSpeechlet : Speechlet
     {
+        string moochApiToken = ConfigurationManager.AppSettings["MoochApiToken"];
         private TraceWriter log;
 
         public MoochSpeechlet(TraceWriter log)
         {
             this.log = log;
         }
-
 #if DEBUG
         public override bool OnRequestValidation(
     AlexaSkillsKit.Authentication.SpeechletRequestValidationResult result, DateTime referenceTimeUtc, AlexaSkillsKit.Json.SpeechletRequestEnvelope requestEnvelope)
@@ -50,27 +50,57 @@ namespace AlexaFunctions
         public override SpeechletResponse OnIntent(IntentRequest request, Session session)
         {
             this.log.Info(String.Format("BeginOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent.Name));
+            SpeechletResponse speech = null;
 
-            var task = GetEvents();
-            task.Wait();
+            switch (request.Intent.Name.ToLower())
+            {
+                case "amazon.helpintent":
+                    speech = new SpeechletResponse()
+                    {
+                        ShouldEndSession = false,
+                        OutputSpeech = new SsmlOutputSpeech()
+                        {
+                            Ssml = "<speak><p>Ask me to find you events with free food or drinks</p><p>For example</p> Alexa, open Find Mooch, find an event in Seattle </speak>"
+                        }
+
+                    };
+                    break;
+                case "findmooch":
+                default:
+                    Slot citySlot = request.Intent.Slots["city"];
+                    string cityName = citySlot.Value;
+
+                    if (String.IsNullOrWhiteSpace(cityName))
+                    {
+                        // If no city given, default to Seattle
+                        cityName = "Seattle, WA";
+                    }
+
+                    var task = GetEvents(cityName);
+                    task.Wait();
+                    speech = task.Result;
+
+                    break;
+            }
 
             this.log.Info(String.Format("EndOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent));
-            return task.Result;
+            return speech;
         }
 
 
-        private async Task<SpeechletResponse> GetEvents()
+        private async Task<SpeechletResponse> GetEvents(string cityName)
         {
-            string outputSpeech = "Here are events near you.";
+            string outputSpeech = String.Format("Here are events near {0}.", cityName);
             string outputCard = String.Empty;
             int pageSize = 5; // Get up to 5 events per interaction
-            string moochApiToken = ConfigurationManager.AppSettings["MoochApiToken"];
 
             // Call Mooch API for data
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri("http://findmooch.com");
-                var path = String.Format("/api/Events?token={0}&latitude=0&longitude=0&hasLocation=0&pageSize={1}", moochApiToken, pageSize);
+                String path;
+                path = String.Format("/api/Events?token={0}&hasLocation=1&pageSize={1}&address={2}", moochApiToken, pageSize, cityName);
+                
                 HttpResponseMessage moochResponse = await client.GetAsync(path);
                 
                 if (moochResponse.IsSuccessStatusCode)
