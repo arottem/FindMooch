@@ -11,3 +11,9 @@
 /Alexa-Skill-Server/Alexa-Functions/appsettings.json
 /Alexa-Skill-Server/packages
 /Alexa-Skill-Server/Alexa-Functions/Alexa-Functions.csproj.user
+*.config
+*.suo
+/FindMooch.BotFramework/FindMooch.BotFramework/bin
+/FindMooch.BotFramework/FindMooch.BotFramework/obj/Debug
+/FindMooch.BotFramework/packages
+*.user
