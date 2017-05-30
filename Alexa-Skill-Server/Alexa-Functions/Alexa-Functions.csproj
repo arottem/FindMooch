@@ -118,6 +118,11 @@
     <Compile Include="Alexa-Response\MoochSpeechlet.cs" />
     <Compile Include="Alexa-Response\run.cs" />
     <Content Include="host.json" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\findmooch-alexa-2 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa-second - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa-second - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

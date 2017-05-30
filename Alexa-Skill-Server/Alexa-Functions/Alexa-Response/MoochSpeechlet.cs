@@ -2,9 +2,11 @@
 using AlexaSkillsKit.Speechlet;
 using AlexaSkillsKit.UI;
 using Microsoft.Azure.WebJobs.Host;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -17,6 +19,8 @@ namespace AlexaFunctions
     {
         string moochApiToken = ConfigurationManager.AppSettings["MoochApiToken"];
         private TraceWriter log;
+        private const string SESSION_ATTRIBUTE_START_INDEX = "startIndex";
+        private const string SESSION_ATTRIBUTE_DATA = "sessionData";
 
         public MoochSpeechlet(TraceWriter log)
         {
@@ -71,38 +75,43 @@ namespace AlexaFunctions
                         ShouldEndSession = true
                     };
                     break;
-                case "givedetails":
-                    break;
-                case "moreevents":
-                    var start = session.Attributes["startIndex"];
+                case "details":
                     int startIndex;
-                    if (!session.IsNew && int.TryParse(start, out startIndex))
+                    if (!LastEventIndex(session, out startIndex))
                     {
-                        speech = GetAndWaitForEvents(request, startIndex);
+                        return ErrorResponse();
                     }
-                    else
+
+                    return RetrieveEventToSpeech(session, startIndex, true);
+                    
+                case "moreevents":
+                    int previousStartIndex;
+                    if (!LastEventIndex(session, out previousStartIndex))
                     {
-                        speech = new SpeechletResponse()
-                        {
-                            ShouldEndSession = false,
-                            OutputSpeech = new SsmlOutputSpeech()
-                            {
-                                Ssml = "<speak><p>Sorry, I couldn't understand</p><p>Please ask me to find you events</p><p>For example</p> Alexa, open Find Mooch, find an event in Seattle </speak>"
-                            }
-                        };
+                        return ErrorResponse();
                     }
-                    break;
+
+                    return RetrieveEventToSpeech(session, ++previousStartIndex);
                 case "findmooch":
                 default:
-                    speech = GetAndWaitForEvents(request);                    
+                    var task = ProcessFindMoochIntent(request, session);
+                    task.Wait();
+                    speech = task.Result;
                     break;
             }
-
+            
             this.log.Info(String.Format("EndOnIntent requestId={0}, sessionId={1}, intent={2}", request.RequestId, session.SessionId, request.Intent));
             return speech;
         }
 
-        private SpeechletResponse GetAndWaitForEvents(IntentRequest request, int startIndex = 0)
+        private bool LastEventIndex(Session session, out int startIndex)
+        {
+            startIndex = -1;
+            var start = session.Attributes[SESSION_ATTRIBUTE_START_INDEX];
+            return (!session.IsNew && int.TryParse(start, out startIndex));
+        }
+
+        private async Task<SpeechletResponse> ProcessFindMoochIntent(IntentRequest request, Session session)
         {
             Slot citySlot = request.Intent.Slots["city"];
             string cityName = citySlot.Value;
@@ -113,16 +122,47 @@ namespace AlexaFunctions
                 cityName = "Seattle, WA";
             }
 
-            var task = GetEvents(cityName);
-            task.Wait();
-            return task.Result;        
+            MoochApiResult result = await GetEvents(cityName, session);
+            if (result == MoochApiResult.Success)
+            {
+                return RetrieveEventToSpeech(session, 0);                
+            }
+            else if(result == MoochApiResult.NoEvents)
+            {
+                String outputSpeech = String.Format(@"<emphasis level=""strong"">Sorry.</emphasis><p>Find Mooch is currently not available near {0}</p><p>It is only available in the Puget Sound area.</p>",
+                        cityName);
+
+                var response = new SpeechletResponse();
+                response.ShouldEndSession = true;
+                response.OutputSpeech = new SsmlOutputSpeech() { Ssml = outputSpeech };
+                return response;
+            }
+            else
+            {
+                return ErrorResponse();
+            }
+        }
+                             
+        private SpeechletResponse ErrorResponse()
+        {
+            string outputSpeech = @"<speak><emphasis level=""strong"">Sorry.</emphasis> An error occurred with Find Mooch.</speak>";
+
+            var response = new SpeechletResponse();
+            response.ShouldEndSession = true;
+            response.OutputSpeech = new SsmlOutputSpeech() { Ssml = outputSpeech };
+            return response;
         }
 
-        private async Task<SpeechletResponse> GetEvents(string cityName)
+        private enum MoochApiResult
         {
-            string outputSpeech = String.Format("Here are events near {0}.", cityName);
-            string outputCard = String.Empty;
-            int pageSize = 3; // Get up to 3 events per interaction (speak 2, know that more are available)
+            Error,
+            NoEvents,
+            Success
+        }
+
+        private async Task<MoochApiResult> GetEvents(string cityName, Session session)
+        {
+            int pageSize = 10; 
             int startItem = 0;
 
             // Call Mooch API for data
@@ -136,41 +176,76 @@ namespace AlexaFunctions
                 
                 if (moochResponse.IsSuccessStatusCode)
                 {
-                    var events = await moochResponse.Content.ReadAsAsync<ICollection<MoochEvent>>();
-                    if (events.Count > 0)
+                    var events = await moochResponse.Content.ReadAsStringAsync();
+                    session.Attributes[SESSION_ATTRIBUTE_DATA] = events;
+
+                    if (GetEventsFromSession(session).Count == 0)
                     {
-                        foreach (MoochEvent moochEvent in events)
-                        {
-                            var localTime = TimeZoneInfo.ConvertTime(moochEvent.EventStart, TimeZoneInfo.Utc, TimeZoneInfo.Local);
-                            outputSpeech += String.Format(
-                                @"<p><emphasis level=""strong"">Event titled</emphasis> <break strength=""strong""/> {0} <break strength=""strong""/><emphasis level=""moderate""> Event occurs on </emphasis> {1} </p> ",
-                                moochEvent.Title, localTime);
-                            string location = StringifyLocation(moochEvent.Location);
-                            outputCard += String.Format("Event: {0}\nDate: {1}\nLocation:{2}\n", moochEvent.Title, localTime, location);
-                        }
+                        return MoochApiResult.NoEvents;
                     }
-                    else
-                    {
-                        outputSpeech = String.Format(@"<emphasis level=""strong"">Sorry.</emphasis><p>Find Mooch is currently not available near {0}</p><p>It is only available in the Puget Sound area.</p>",
-                            cityName);
-                    }
+                    return MoochApiResult.Success;
                 }
                 else
                 {
-                    outputSpeech = @"<emphasis level=""strong"">Sorry.</emphasis> An error occurred with Find Mooch.";
+                    return MoochApiResult.Error;
                 }
             }
+        }
 
+        private IList<MoochEvent> GetEventsFromSession(Session session)
+        {
+            string allEvents = session.Attributes[SESSION_ATTRIBUTE_DATA];
+            var events = JsonConvert.DeserializeObject<IList<MoochEvent>>(allEvents);
+            return events;
+        }
+
+        private SpeechletResponse RetrieveEventToSpeech(Session session, int eventIndex, bool sayDetails = false)
+        {
+            IList<MoochEvent> events = GetEventsFromSession(session);
+            string outputSpeech = String.Empty;
+            string outputCard = String.Empty;
+            var response = new SpeechletResponse();
+
+            if (eventIndex >= events.Count)
+            {
+                // Index out of range, we shouldn't have allowed the "more" command, but if user did return return response
+                outputSpeech = @"<speak>No more events found</speak>";
+
+                response.ShouldEndSession = true;
+                response.OutputSpeech = new SsmlOutputSpeech() { Ssml = outputSpeech };
+                return response;
+            }
+
+            var moochEvent = events[eventIndex];
+
+            var localTime = TimeZoneInfo.ConvertTime(moochEvent.EventStart, TimeZoneInfo.Local, TimeZoneInfo.Local);
+            outputSpeech += String.Format(
+                @"<p><emphasis level=""strong"">Event titled</emphasis> <break strength=""strong""/> {0} <break strength=""strong""/><emphasis level=""moderate""> Event occurs on </emphasis> {1} </p> ",
+                moochEvent.Title, localTime);
+            if (sayDetails)
+            {
+                outputSpeech += String.Format(
+                    @"<p><emphasis level=""strong"">Located at</emphasis> <break strength=""strong""/>{0}</p>",
+                    StringifyLocation(moochEvent.Location)
+                );
+            }
+            string location = StringifyLocation(moochEvent.Location);
+            outputCard += String.Format("Event: {0}\nDate: {1}\nLocation:{2}\n", moochEvent.Title, localTime, location);
+
+            outputSpeech += @"<p>You can say</p><p><emphasis level=""medium"">repeat</emphasis>, to repeat event with more details</p>";
+            if (eventIndex < events.Count - 1)
+            {
+                outputSpeech += @"<p>or say<emphasis level=""medium"">next event</emphasis>, to hear the next event</p>";
+            }
 
             outputSpeech = String.Format("<speak>{0}</speak>", outputSpeech);
-            var response = new SpeechletResponse();
-            response.ShouldEndSession = true;
+            response.ShouldEndSession = false;
             response.OutputSpeech = new SsmlOutputSpeech() { Ssml = outputSpeech };
-
+            session.Attributes[SESSION_ATTRIBUTE_START_INDEX] = eventIndex.ToString(CultureInfo.InvariantCulture);
             if (!String.IsNullOrWhiteSpace(outputCard))
             {
                 var card = new SimpleCard();
-                card.Title = String.Format("Here are events near {0}", cityName);
+                card.Title = "Events near you";
                 card.Content = outputCard;
                 response.Card = card;
             }
