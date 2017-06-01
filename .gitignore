@@ -17,3 +17,11 @@
 /FindMooch.BotFramework/FindMooch.BotFramework/obj/Debug
 /FindMooch.BotFramework/packages
 *.user
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa.publishsettings
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa-second - Web Deploy.pubxml
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa-second - FTP.pubxml
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/findmooch-alexa-2 - Web Deploy.pubxml
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa - Web Deploy.pubxml
+/Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa - FTP.pubxml
