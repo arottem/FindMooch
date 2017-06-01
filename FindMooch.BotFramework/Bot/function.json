@@ -12,5 +12,7 @@
       "name": "res"
     }
   ],
-  "disabled": false
+  "disabled": false,
+  "scriptFile": "..\\bin\\Bot.dll",
+  "entryPoint": "BotFunctions.BotFunctions.Run"
 }

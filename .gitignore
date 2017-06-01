@@ -25,3 +25,7 @@
 /Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/findmooch-alexa-2 - Web Deploy.pubxml
 /Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa - Web Deploy.pubxml
 /Alexa-Skill-Server/Alexa-Functions/Properties/PublishProfiles/FindMooch-Alexa - FTP.pubxml
+/FindMooch.BotFramework/bin
+/FindMooch.BotFramework/obj/Debug
+/FindMooch.BotFramework/Properties/PublishProfiles
+/FindMooch.BotFramework/appsettings.json
