@@ -19,7 +19,7 @@ namespace BotFunctions
         [LuisIntent("None")]
         public async Task NoneIntent(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync($"You have reached the none intent. You said: {result.Query}"); //
+            await context.PostAsync($"v.2.You have reached the none intent. You said: {result.Query}"); //
             context.Wait(MessageReceived);
         }
 
