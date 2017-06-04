@@ -31,3 +31,7 @@
 /FindMooch.BotFramework/appsettings.json
 /FindMooch.BotFramework/obj/Release
 /Mooch.Bot/Mooch.Bot/obj/Debug
+/BotApp/BotApp/bin
+/BotApp/BotApp/obj
+/BotApp/packages
+*.pubxml

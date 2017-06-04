@@ -154,6 +154,12 @@
     </Content>
     <Content Include="host.json" />
     <Content Include="Bot\function.json" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\findmooch-alexa-2 - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa-second - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMooch-Alexa-second - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\FindMoochBot - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -169,9 +175,7 @@
     <Compile Include="Bot\run.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
