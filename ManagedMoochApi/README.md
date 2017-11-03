@@ -1,7 +1,6 @@
-#Readme
-##Managed Mooch API is a simple to use interface with the FindMooch.com service.  
-Below is an example:
-`
+## Managed Mooch API is a simple to use interface with the FindMooch.com service.  
+Below is an example:  
+```
             var moochServerState = new MoochServer(new MoochSettings()
             {
                 ApiKey = "YOUR_API_KEY",
@@ -13,5 +12,5 @@ Below is an example:
             // Getting events from the server
             IEnumerable<MoochEvent> events = (await moochServerState.Events()).Skip(currentEventIndex).Take(EventsPerInteraction);
             ...
- `         
+ ```          
 
