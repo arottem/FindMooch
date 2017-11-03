@@ -8,12 +8,16 @@ using Microsoft.Bot.Builder.Azure;
 using BotApp.Dialogs;
 using System;
 using System.Linq;
+using System.Diagnostics;
+using Microsoft.ApplicationInsights;
 
 namespace BotApp
 {
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        private TelemetryClient tc = new TelemetryClient();
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -65,8 +69,10 @@ namespace BotApp
             }
             catch (Exception ex)
             {
-                string error = ex.ToString();                
+                Trace.TraceError("Exception in bot messages controller: {0}", ex);
+                this.tc.TrackException(ex);
 
+                string error = ex.ToString();                
                 //create response activity
                 Activity response = activity.CreateReply(error);
 
