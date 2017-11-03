@@ -28,6 +28,10 @@ namespace ManagedMoochApi
             this.cachedEvents = cachedState.Events;
         }
 
+        /// <summary>
+        /// Load the next batch of events from the server to the cache
+        /// </summary>
+        /// <returns></returns>
         public async Task LoadEventsFromServer()
         {
             using (var client = new HttpClient())
@@ -46,6 +50,10 @@ namespace ManagedMoochApi
             }
         }
 
+        /// <summary>
+        /// Returns the cached events, or if none cached, gets the next set from the server
+        /// </summary>
+        /// <returns></returns>
         public async Task<IList<MoochEvent>> Events()
         {
             if (this.cachedEvents == null)
@@ -56,6 +64,9 @@ namespace ManagedMoochApi
             return this.cachedEvents;
         }
 
+        /// <summary>
+        /// Returns a string representating this object for later deserialization
+        /// </summary>
         public string Serialize
         {
             get
@@ -70,6 +81,11 @@ namespace ManagedMoochApi
             }
         }
 
+        /// <summary>
+        /// Returns a MoochServer object with state consistent with the one given by the serialized string
+        /// </summary>
+        /// <param name="state"></param>
+        /// <returns></returns>
         public static MoochServer Deserialize(string state)
         {
             var stateObject = JsonConvert.DeserializeObject<StateObject>(state);
